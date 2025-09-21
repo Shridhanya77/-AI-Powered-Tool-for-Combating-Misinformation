@@ -1,0 +1,6 @@
+flask
+flask-cors
+tensorflow
+newspaper3k
+pillow
+pytesseract
