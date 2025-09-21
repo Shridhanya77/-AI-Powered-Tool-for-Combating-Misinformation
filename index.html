@@ -1,0 +1,295 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <title>Fake News Detector</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap" rel="stylesheet" />
+    <style>
+        /* Reset and base */
+        * {
+            box-sizing: border-box;
+        }
+        body {
+            margin: 0;
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen,
+                Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
+            background: linear-gradient(135deg, #0f172a, #1e293b);
+            color: #e0e7ff;
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: flex-start;
+            padding: 48px 20px 120px;
+        }
+
+        .container {
+            background: #1e293b;
+            max-width: 720px;
+            width: 100%;
+            border-radius: 20px;
+            box-shadow: 0 16px 40px rgba(59, 130, 246, 0.6);
+            padding: 48px 56px 56px;
+            transition: box-shadow 0.3s ease;
+        }
+        .container:hover {
+            box-shadow: 0 24px 60px rgba(59, 130, 246, 0.8);
+        }
+
+        h1 {
+            font-weight: 700;
+            font-size: 2.5rem;
+            text-align: center;
+            margin-bottom: 1.5rem;
+            color: #3b82f6; /* Vibrant blue */
+            position: relative;
+            letter-spacing: 0.05em;
+        }
+        h1::before,
+        h1::after {
+            content: "📰🤖✨";
+            font-size: 1.75rem;
+            position: absolute;
+            top: 50%;
+            transform: translateY(-50%);
+            user-select: none;
+        }
+        h1::before {
+            left: -3.5rem;
+        }
+        h1::after {
+            right: -3.5rem;
+        }
+
+        form {
+            margin-top: 2rem;
+        }
+
+        label {
+            display: block;
+            font-weight: 600;
+            margin-bottom: 0.6rem;
+            color: #cbd5e1;
+            font-size: 1.1rem;
+        }
+
+        textarea {
+            width: 100%;
+            min-height: 180px;
+            padding: 18px 20px;
+            font-size: 1.1rem;
+            border-radius: 14px;
+            border: 2px solid #334155;
+            background-color: #0f172a;
+            color: #e0e7ff;
+            resize: vertical;
+            transition: border-color 0.3s ease, box-shadow 0.3s ease;
+            font-family: 'Inter', sans-serif;
+            box-shadow: inset 0 0 8px rgba(59, 130, 246, 0.3);
+        }
+        textarea::placeholder {
+            color: #94a3b8;
+            font-style: italic;
+        }
+        textarea:focus {
+            outline: none;
+            border-color: #3b82f6;
+            box-shadow: 0 0 12px rgba(59, 130, 246, 0.7);
+            background-color: #1e293b;
+        }
+
+        input[type="file"],
+        input[type="url"] {
+            width: 100%;
+            padding: 14px 18px;
+            font-size: 1.1rem;
+            border-radius: 14px;
+            border: 2px solid #334155;
+            background-color: #0f172a;
+            color: #e0e7ff;
+            transition: border-color 0.3s ease, box-shadow 0.3s ease;
+            font-family: 'Inter', sans-serif;
+            box-shadow: inset 0 0 8px rgba(59, 130, 246, 0.3);
+        }
+        input[type="file"]::-webkit-file-upload-button {
+            background-color: #3b82f6;
+            color: #fff;
+            border: none;
+            padding: 8px 14px;
+            border-radius: 10px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: background-color 0.3s ease;
+        }
+        input[type="file"]::-webkit-file-upload-button:hover {
+            background-color: #2563eb;
+        }
+        input[type="file"]:focus,
+        input[type="url"]:focus {
+            outline: none;
+            border-color: #3b82f6;
+            box-shadow: 0 0 12px rgba(59, 130, 246, 0.7);
+            background-color: #1e293b;
+        }
+
+        .form-group {
+            margin-top: 28px;
+        }
+
+        .button {
+            margin-top: 40px;
+            width: 100%;
+            background: linear-gradient(90deg, #3b82f6, #2563eb);
+            color: #e0e7ff;
+            font-weight: 700;
+            font-size: 1.25rem;
+            padding: 16px 0;
+            border: none;
+            border-radius: 16px;
+            cursor: pointer;
+            letter-spacing: 0.07em;
+            box-shadow: 0 8px 24px rgba(37, 99, 235, 0.6);
+            transition: background 0.3s ease, box-shadow 0.3s ease;
+        }
+        .button:hover,
+        .button:focus {
+            background: linear-gradient(90deg, #2563eb, #1e40af);
+            box-shadow: 0 10px 30px rgba(30, 64, 175, 0.8);
+            outline: none;
+        }
+
+        .result {
+            margin-top: 48px;
+            background: #1e293b;
+            border-left: 6px solid;
+            border-radius: 16px;
+            padding: 28px 36px;
+            text-align: center;
+            font-weight: 700;
+            font-size: 1.3rem;
+            box-shadow: 0 12px 36px rgba(59, 130, 246, 0.25);
+            user-select: none;
+            color: #e0e7ff;
+        }
+        .result.fake {
+            border-color: #ef4444;
+            background: #7f1d1d;
+            box-shadow: 0 12px 36px rgba(239, 68, 68, 0.5);
+            color: #fee2e2;
+        }
+        .result.real {
+            border-color: #22c55e;
+            background: #14532d;
+            box-shadow: 0 12px 36px rgba(34, 197, 94, 0.5);
+            color: #dcfce7;
+        }
+        .result strong {
+            display: block;
+            font-size: 1.6rem;
+            margin-bottom: 0.75rem;
+        }
+        .result p {
+            margin: 0.3rem 0;
+            font-weight: 600;
+            font-size: 1.1rem;
+        }
+
+        /* Disclaimer scrolling text */
+        .disclaimer {
+            position: fixed;
+            bottom: 0;
+            width: 100%;
+            background: #1e293b;
+            color: #3b82f6;
+            text-align: center;
+            padding: 14px 0;
+            font-weight: 600;
+            font-size: 1rem;
+            overflow: hidden;
+            box-shadow: 0 -4px 12px rgba(59, 130, 246, 0.4);
+            z-index: 1000;
+            user-select: none;
+        }
+
+        .disclaimer p {
+            display: inline-block;
+            white-space: nowrap;
+            animation: scroll-text 22s linear infinite;
+        }
+
+        @keyframes scroll-text {
+            0% {
+                transform: translateX(100%);
+            }
+            100% {
+                transform: translateX(-100%);
+            }
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .container {
+                padding: 36px 28px 44px;
+                width: 100%;
+                max-width: 100%;
+                border-radius: 14px;
+            }
+            h1::before {
+                left: -2.5rem;
+            }
+            h1::after {
+                right: -2.5rem;
+            }
+            .button {
+                font-size: 1.1rem;
+                padding: 14px 0;
+            }
+        }
+    </style>
+</head>
+<body>
+    <main class="container" role="main" aria-label="Fake News Detection Application">
+        <h1>Fake News Detector</h1>
+        <form method="POST" action="/predict" enctype="multipart/form-data" novalidate>
+            <div class="form-group">
+                <label for="article">News Article Text</label>
+                <textarea id="article" name="article" placeholder="Paste the news article text here...">{% if article %}{{ article }}{% endif %}</textarea>
+            </div>
+
+            <div class="form-group">
+                <label for="image">Upload News Image or PDF Document</label>
+                <input type="file" id="image" name="image" accept=".png,.jpg,.jpeg,.pdf" aria-describedby="fileHelp" />
+            </div>
+
+            <div class="form-group">
+                <label for="url">Provide News URL</label>
+                <input type="url" id="url" name="url" placeholder="https://example.com/news-article" value="{% if url %}{{ url }}{% endif %}" />
+            </div>
+
+            <button type="submit" class="button" aria-label="Submit news data for fake news prediction">Analyze Now</button>
+        </form>
+
+        {% if prediction %}
+        <section 
+            class="result {% if prediction == 'Fake' %}fake{% else %}real{% endif %}" 
+            role="region" aria-live="polite" aria-atomic="true" tabindex="0"
+            aria-label="Prediction result"
+        >
+            <strong>
+                {% if prediction == 'Fake' %}
+                    ⚠️ Classified as Fake News — Confidence: {{ '%.2f'|format(100 - confidence|default(0)) }}%
+                {% else %}
+                    ✅ Classified as Authentic News — Confidence: {{ '%.2f'|format(confidence|default(0)) }}%
+                {% endif %}
+            </strong>
+            <p><strong>Prediction:</strong> {{ prediction }}</p>
+            <p><strong>Confidence Level:</strong> {{ '%.2f'|format(confidence) }}%</p>
+        </section>
+        {% endif %}
+    </main>
+
+    <!-- Disclaimer message -->
+    <div class="disclaimer" role="contentinfo" aria-label="Disclaimer">
+        <p>⚠️ This tool is currently in development. Please verify information independently before making decisions.</p>
+    </div>
+</body>
+</html>
